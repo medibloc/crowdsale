@@ -17,12 +17,14 @@ contract PresaleFirst is CappedCrowdsale, Pausable {
     uint256 _rate,
     address _wallet,
     uint256 _cap,
-    uint256 _minimum
+    uint256 _minimum,
+    uint256 _initialMint
   )
     Crowdsale(_startTime, _endTime, _rate, _wallet)
     CappedCrowdsale(_cap)
   {
     minimum = _minimum;
+    token.mint(owner, _initialMint);
   }
 
   function createTokenContract() internal returns (MintableToken) {
@@ -61,8 +63,7 @@ contract PresaleFirst is CappedCrowdsale, Pausable {
     forwardFunds();
   }
 
-  function handOverTokenOwnership() public {
-    require(now > endTime);
+  function handOverTokenOwnership() onlyOwner public {
     token.transferOwnership(owner);
   }
 }
