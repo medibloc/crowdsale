@@ -53,7 +53,7 @@ contract PresaleFirst is CappedCrowdsale, Pausable {
     weiRaised = weiRaised.add(weiAmount);
 
     if (locks[msg.sender] == 0x0) {
-      TokenLock lock = new TokenLock(MedToken(token), owner, beneficiary, 1512133560);
+      TokenLock lock = new TokenLock(MedToken(token), owner, beneficiary);
       locks[msg.sender] = address(lock);
     }
 
