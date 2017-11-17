@@ -1,0 +1,57 @@
+pragma solidity ^0.4.15;
+
+import './CappedCrowdsale.sol';
+import './Pausable.sol';
+import './MedToken.sol';
+import './TokenLock.sol';
+import './SafeMath.sol';
+
+contract PresaleSecond is CappedCrowdsale, Pausable {
+  using SafeMath for uint256;
+
+  mapping(address => address) public locks;
+
+  function PresaleSecond(
+    uint256 _startTime,
+    uint256 _endTime,
+    uint _rate,
+    address _tokenAddress,
+    address _wallet,
+    uint256 _cap
+  )
+    Crowdsale(_startTime, _endTime, _rate, _wallet)
+    CappedCrowdsale(_cap)
+  {
+    require(_tokenAddress != 0x0);
+
+    token = MedToken(_tokenAddress);
+  }
+
+  function () payable {
+    buyTokens(msg.sender);
+  }
+
+  function buyTokens(address beneficiary) whenNotPaused public payable {
+    require(beneficiary != 0x0);
+    require(validPurchase());
+
+    uint256 weiAmount = msg.value;
+    uint256 tokens = weiAmount.mul(rate);
+
+    weiRaised = weiRaised.add(weiAmount);
+
+    if (locks[msg.sender] == 0x0) {
+      TokenLock lock = new TokenLock(MedToken(token), owner, beneficiary);
+      locks[msg.sender] = address(lock);
+    }
+
+    token.mint(locks[msg.sender], tokens);
+    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+
+    forwardFunds();
+  }
+
+  function handOverTokenOwnership() onlyOwner public {
+    token.transferOwnership(owner);
+  }
+}
