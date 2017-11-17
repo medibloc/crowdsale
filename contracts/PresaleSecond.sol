@@ -3,13 +3,12 @@ pragma solidity ^0.4.15;
 import './CappedCrowdsale.sol';
 import './Pausable.sol';
 import './MedToken.sol';
-import './TokenLock.sol';
 import './SafeMath.sol';
 
 contract PresaleSecond is CappedCrowdsale, Pausable {
   using SafeMath for uint256;
 
-  mapping(address => address) public locks;
+  mapping(address => uint256) public locks;
 
   function PresaleSecond(
     uint256 _startTime,
@@ -27,6 +26,20 @@ contract PresaleSecond is CappedCrowdsale, Pausable {
     token = MedToken(_tokenAddress);
   }
 
+  function releaseLock(address beneficiary) onlyOwner public {
+    require(locks[beneficiary] > 0);
+
+    require(token.transfer(beneficiary, locks[beneficiary]));
+    locks[beneficiary] = 0;
+  }
+
+  function withdrawLock(address originalSender) onlyOwner public {
+    require(locks[originalSender] > 0);
+
+    require(token.transfer(owner, locks[originalSender]));
+    locks[originalSender] = 0;
+  }
+
   function () payable {
     buyTokens(msg.sender);
   }
@@ -40,12 +53,8 @@ contract PresaleSecond is CappedCrowdsale, Pausable {
 
     weiRaised = weiRaised.add(weiAmount);
 
-    if (locks[msg.sender] == 0x0) {
-      TokenLock lock = new TokenLock(MedToken(token), owner, beneficiary);
-      locks[msg.sender] = address(lock);
-    }
-
-    token.mint(locks[msg.sender], tokens);
+    token.mint(this, tokens);
+    locks[msg.sender] = locks[msg.sender] + tokens;
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
