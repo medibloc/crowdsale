@@ -5,12 +5,12 @@ import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract PresaleSecond is CappedCrowdsale, Pausable {
+contract MainSale is CappedCrowdsale, Pausable {
   using SafeMath for uint256;
 
   mapping(address => uint256) public locks;
 
-  function PresaleSecond(
+  function MainSale(
     uint256 _startTime,
     uint256 _endTime,
     uint _rate,
@@ -24,6 +24,12 @@ contract PresaleSecond is CappedCrowdsale, Pausable {
     require(_tokenAddress != 0x0);
 
     token = MedToken(_tokenAddress);
+  }
+
+  function setCap(uint256 _cap) onlyOwner public {
+    require(_cap > 0);
+
+    cap = _cap;
   }
 
   function releaseLock(address beneficiary) onlyOwner public {

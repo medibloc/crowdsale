@@ -1,8 +1,8 @@
 pragma solidity ^0.4.11;
 
-import './Pausable.sol';
-import './ERC20Basic.sol';
-import './SafeERC20.sol';
+import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
+import 'zeppelin-solidity/contracts/token/SafeERC20.sol';
 import './MedToken.sol';
 import './PresaleFirst.sol';
 import './TokenLock.sol';
@@ -32,7 +32,7 @@ contract PresaleFirstAddtional is Pausable {
     bool nonZeroPurchase = msg.value != 0;
     bool withinCap = (presale.weiRaised() + msg.value) * presale.rate() <= presale.cap();
 
-    return additional && withinPeriod && nonZeroPurchase && !presale.paused();
+    return additional && withinPeriod && nonZeroPurchase && withinCap && !presale.paused();
   }
 
   function forwardFunds() internal {
